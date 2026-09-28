@@ -367,6 +367,8 @@ export const EvolutionRow = styled.ScrollView.attrs({
   horizontal: true,
   showsHorizontalScrollIndicator: false,
 })`
+  flex-grow: 0;
+  flex-shrink: 0;
   margin: 6px 20px 24px;
 `;
 
@@ -386,6 +388,14 @@ export const EvolutionName = styled.Text`
   text-transform: capitalize;
   margin-top: 2px;
   text-align: center;
+`;
+
+export const EvolutionCondition = styled.Text`
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  margin-top: 2px;
+  max-width: 90px;
 `;
 
 export const EvolutionArrow = styled.Text`

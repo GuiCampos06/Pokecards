@@ -23,6 +23,7 @@ import {
   EvolutionStage,
   EvolutionImage,
   EvolutionName,
+  EvolutionCondition,
   EvolutionArrow,
   StatRow,
   StatLabel,
@@ -145,6 +146,9 @@ export default class User extends Component {
                         resizeMode="contain"
                       />
                       <EvolutionName>{evo.name}</EvolutionName>
+                      {evo.condition && (
+                        <EvolutionCondition>{evo.condition}</EvolutionCondition>
+                      )}
                     </EvolutionStage>
                   ))}
                   {stageIndex < evolutionChain.length - 1 && (
