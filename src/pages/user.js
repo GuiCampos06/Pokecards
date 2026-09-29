@@ -1,7 +1,16 @@
 import React, { Component } from "react";
 import { ActivityIndicator, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { getAbilityDescription, getEvolutionChain } from "../services/api";
+import {
+  getAbilityDescription,
+  getEvolutionChain,
+  translateToPt,
+} from "../services/api";
+import {
+  humanize,
+  translateType,
+  translateStat,
+} from "../services/translations";
 import {
   Container,
   Header,
@@ -35,9 +44,11 @@ import {
 export default class User extends Component {
   state = {
     abilityDescriptions: {},
+    abilityNames: {},
     loadingAbilities: true,
     evolutionChain: [],
     loadingEvolution: true,
+    evolutionError: false,
   };
 
   componentDidMount() {
@@ -48,14 +59,24 @@ export default class User extends Component {
 
   loadAbilityDescriptions = async (pokemon) => {
     const descriptions = {};
+    const names = {};
 
     await Promise.all(
       pokemon.abilities.map(async (ability) => {
-        descriptions[ability.name] = await getAbilityDescription(ability.url);
+        const [description, name] = await Promise.all([
+          getAbilityDescription(ability.url),
+          translateToPt(humanize(ability.name)),
+        ]);
+        descriptions[ability.name] = description;
+        names[ability.name] = name;
       })
     );
 
-    this.setState({ abilityDescriptions: descriptions, loadingAbilities: false });
+    this.setState({
+      abilityDescriptions: descriptions,
+      abilityNames: names,
+      loadingAbilities: false,
+    });
   };
 
   loadEvolutionChain = async (pokemon) => {
@@ -63,7 +84,8 @@ export default class User extends Component {
       const stages = await getEvolutionChain(pokemon.name);
       this.setState({ evolutionChain: stages, loadingEvolution: false });
     } catch (error) {
-      this.setState({ loadingEvolution: false });
+      console.log("Erro na linha evolutiva:", error.message);
+      this.setState({ loadingEvolution: false, evolutionError: true });
     }
   };
 
@@ -72,9 +94,11 @@ export default class User extends Component {
     const { pokemon } = route.params;
     const {
       abilityDescriptions,
+      abilityNames,
       loadingAbilities,
       evolutionChain,
       loadingEvolution,
+      evolutionError,
     } = this.state;
 
     return (
@@ -94,7 +118,7 @@ export default class User extends Component {
             <TypesRow>
               {pokemon.types.split(", ").map((type) => (
                 <TypeBadge key={type}>
-                  <TypeText>{type}</TypeText>
+                  <TypeText>{translateType(type)}</TypeText>
                 </TypeBadge>
               ))}
             </TypesRow>
@@ -113,7 +137,7 @@ export default class User extends Component {
 
           {pokemon.shinyImage && (
             <>
-              <SectionTitle>Versão Shiny ✨</SectionTitle>
+              <SectionTitle>Versão Brilhante ✨</SectionTitle>
               <ShinyRow>
                 <ShinyImage source={{ uri: pokemon.shinyImage }} resizeMode="contain" />
               </ShinyRow>
@@ -123,7 +147,7 @@ export default class User extends Component {
           <SectionTitle>Habilidades</SectionTitle>
           {pokemon.abilities.map((ability) => (
             <React.Fragment key={ability.name}>
-              <ListItem>• {ability.name}</ListItem>
+              <ListItem>• {abilityNames[ability.name] || humanize(ability.name)}</ListItem>
               <AbilityDescription>
                 {loadingAbilities
                   ? "Carregando descrição..."
@@ -135,6 +159,10 @@ export default class User extends Component {
           <SectionTitle>Linha Evolutiva</SectionTitle>
           {loadingEvolution ? (
             <ActivityIndicator color="#E3350D" style={{ marginBottom: 20 }} />
+          ) : evolutionError ? (
+            <AbilityDescription>
+              Não foi possível carregar a linha evolutiva.
+            </AbilityDescription>
           ) : (
             <EvolutionRow>
               {evolutionChain.map((stage, stageIndex) => (
@@ -162,7 +190,7 @@ export default class User extends Component {
           <SectionTitle>Atributos</SectionTitle>
           {pokemon.stats.map((stat) => (
             <StatRow key={stat.name}>
-              <StatLabel>{stat.name}</StatLabel>
+              <StatLabel>{translateStat(stat.name)}</StatLabel>
               <StatBarBackground>
                 <StatBarFill pctWidth={Math.min(stat.value, 100)} />
               </StatBarBackground>

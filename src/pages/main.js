@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../services/api";
+import { translateType } from "../services/translations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
@@ -166,7 +167,7 @@ export default class Main extends Component {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <ProfileButtonText>Add</ProfileButtonText>
+                <ProfileButtonText>Adicionar</ProfileButtonText>
               )}
             </SubmitButton>
           </Form>
@@ -183,7 +184,7 @@ export default class Main extends Component {
               <User>
                 <Avatar source={{ uri: item.image }} resizeMode="contain" />
                 <Name>{item.name}</Name>
-                <Bio>{item.types}</Bio>
+                <Bio>{item.types.split(", ").map(translateType).join(", ")}</Bio>
 
                 <ProfileButton
                   onPress={() =>
